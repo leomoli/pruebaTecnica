@@ -1,23 +1,31 @@
 import React, { use, useEffect, useState } from 'react'
+import ReactPaginate from 'react-paginate'; 
 import { getAllUsers } from '../controller/UserApi';
 import type { Users } from '../model/UsersModel';
 import LoadingUsers from './LoadingUsers';
 import ErrorUsers from './ErrorUsers';
-import { useNavigate } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 import UserNotFound from './UserNotFound';
 import {toPdf} from '../controller/ToPdf';
+
+const USERS_PER_PAGE = 10;
 
 const UserList = () => {
     const [users,setUsers]=useState<Users[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [search,setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalUsers, setTotalUsers] = useState(0);
     const navigate = useNavigate();
 
-    const userList = async () => {
+    const userList = async (page:number) => {
+        setLoading(true);
         try {
-            const list = await getAllUsers();
-            setUsers(list.users)
+            const skip = page * USERS_PER_PAGE;
+            const list = await getAllUsers(USERS_PER_PAGE, skip);
+            setUsers(list.users);
+            setTotalUsers(list.total);
         } catch (error) {
             setError(`${error}`);
         }finally{
@@ -26,8 +34,12 @@ const UserList = () => {
     };
 
     useEffect(()=>{
-        userList();
-    },[]);
+        userList(currentPage);
+    },[currentPage]);
+
+    const handlePageClick = ({ selected }: { selected: number }) => {
+        setCurrentPage(selected);
+    };
 
     const userFilter = users?.filter((user)=>{
         const searchData = `
@@ -50,14 +62,8 @@ const UserList = () => {
 
   return (
     <>
-        <h1 className="text-3xl font-bold text-center my-6">Listado de usuarios</h1>
-
-        {loading && <LoadingUsers />}
-        {error && <ErrorUsers />}
-
-        {!loading && !error && (
-            <>
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 px-4">
+        <h1 className="text-3xl font-bold text-center my-6">Listado de usuarios</h1>        
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 px-4">
                     <input
                         type="text"
                         placeholder="Buscar..."
@@ -72,7 +78,10 @@ const UserList = () => {
                         </button>
                     )}
                 </div>
-
+        {loading && <LoadingUsers />}
+        {error && <ErrorUsers />}
+        {!loading && !error && (
+            <>
                 {userFilter.length === 0 ? (<UserNotFound />) : (
                     <div className="overflow-x-auto px-4">
                         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
@@ -121,6 +130,23 @@ const UserList = () => {
                 )}
             </>
         )}
+        <div className="my-6 flex justify-center">
+            <ReactPaginate
+                previousLabel={'← Anterior'}
+                nextLabel={'Siguiente →'}
+                breakLabel={'...'}
+                pageCount={Math.ceil(totalUsers / USERS_PER_PAGE)}
+                marginPagesDisplayed={1}
+                pageRangeDisplayed={2}
+                onPageChange={handlePageClick}
+                containerClassName={'flex gap-2'}
+                activeClassName={'font-bold underline'}
+                pageClassName={'px-3 py-1 border border-gray-300 rounded hover:bg-gray-200'}
+                previousClassName={'px-3 py-1 border border-gray-300 rounded hover:bg-gray-200'}
+                nextClassName={'px-3 py-1 border border-gray-300 rounded hover:bg-gray-200'}
+                breakClassName={'px-3 py-1'}
+                forcePage={currentPage}/>
+        </div>
     </>
   )
 }
