@@ -7,7 +7,7 @@ import P404 from '../pages/P404'
 const Approutes = () => {
   return (
     <Routes>
-      <Route path='/' element={<Home />} />
+      <Route index element={<Home />} />
       <Route path='/user/:id' element={<User />} />
       <Route path='*' element={<P404 />}/>
     </Routes>
