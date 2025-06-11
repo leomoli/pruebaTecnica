@@ -5,7 +5,7 @@ aplicación es presentar un listado de usuarios, realizar búsquedas por cualqui
 
 ## 🚀 Demo
 
-[text](https://leomoli.github.io/pruebaTecnica/)
+[Link app](https://leomoli.github.io/pruebaTecnica/)
 
 ## 🧰 Tecnologías utilizadas
 
